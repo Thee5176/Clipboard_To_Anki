@@ -108,9 +108,9 @@ def append_clipboard(filename):
         
         #Front
         append_to_spreadsheet(filename, 1, saved_words)
-        print(f"Parsed {count(saved_word)} clipboard items to spreadsheet")
+        print(f"Parsed {len(saved_words)} clipboard items to spreadsheet")
         
-        #Back
+        #Back #TODO keep the coresponse row
         furigana_list = find_furigana(saved_words)
         translation_list = find_translation(saved_words)
         
