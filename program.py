@@ -1,9 +1,12 @@
+import time
+
 import pyperclip
 import pykakasi
-import time
+
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
+from deep_translator import GoogleTranslator
 
 """
 / Step 1: parse clipboard > py_list
@@ -12,7 +15,8 @@ TODO Step 3: select sheet_name
 Step 4: iterate through py_list
     / 4.1; parse py_list's item > column A
     / 4.2; find furigana > column B
-    / 4.3; tag > column C FIXME APPEND ONLY ONE LINE??
+    / 4.3; translate to english > append column B
+    / 4.4; tag > column C
 """
 
 #Step 4
@@ -50,13 +54,11 @@ def append_to_spreadsheet(filename, column_no, dataset):
             sheet[f"{column}{next_row}"] = data
             next_row = next_row + 1
 
-
-
     workbook.save(filename)
 
 def find_furigana(dataset):
-    kks = pykakasi.kakasi()
     furigana_list = []
+    kks = pykakasi.kakasi()
     
     for data in dataset:
         result = kks.convert(data)       #result in dictionary of generator object
@@ -65,6 +67,14 @@ def find_furigana(dataset):
         
     return furigana_list
 
+def find_translation(dataset):
+    translation_list = []
+    
+    translator = GoogleTranslator(source='ja', target='en')
+    translation_list = translator.translate_batch(dataset)
+    
+    return translation_list
+    
 
 def append_clipboard(filename):
     saved_words = []
@@ -96,14 +106,21 @@ def append_clipboard(filename):
     except KeyboardInterrupt:
         print("\nClipboard monitor stopped.")
         
+        #Front
         append_to_spreadsheet(filename, 1, saved_words)
-        print("Parsed clipboard to spreadsheet")
+        print(f"Parsed {count(saved_word)} clipboard items to spreadsheet")
         
-        furigana_list = find_furigana(saved_words) #TODO read words from column
-        append_to_spreadsheet(filename, 2, furigana_list)
+        #Back
+        furigana_list = find_furigana(saved_words)
+        translation_list = find_translation(saved_words)
+        
+        back_list = [f"{furigana}　{translation}" for furigana,translation in zip(furigana_list,translation_list)]
+        
+        append_to_spreadsheet(filename, 2, back_list)
         print("Appended furigana")
         
-        tag = input('Add a tag: ') #TODO add more than 1 tag
+        #Tags
+        tag = input('Add a tag/tags: *separate with comma*')
         append_to_spreadsheet(filename, 3, tag)
         print("Appended tag")
         
