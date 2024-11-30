@@ -40,7 +40,7 @@ def append_to_spreadsheet(filename, column_no, dataset):
         prev_column = get_column_letter(column_no - 1)
         prev_row_with_data = [cell for cell in sheet[prev_column] if cell.value is not None]   
         last_row = int(prev_row_with_data[-1].row) + 1
-        
+
         for i in range(next_row, last_row):
             sheet[f"{column}{i}"] = dataset
         
@@ -88,7 +88,8 @@ def append_clipboard(filename):
     try:
         while True:
             current_text = pyperclip.paste()
-            if current_text != last_text and current_text.strip():
+            if current_text != last_text:
+                current_text = current_text.strip()
                 last_text = current_text
                 
                 if first_clip:
