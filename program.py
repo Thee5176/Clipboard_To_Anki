@@ -33,15 +33,17 @@ def append_to_spreadsheet(filename, column_no, dataset):
         #Step 4.2
     if type(dataset) == str:
         #find last row of prev column
-        prev_column = get_column_letter(column_no - 1)
-        row_with_data = [cell for cell in sheet[prev_column] if cell.value is not None]
-        last_row = int(row_with_data[-1].row) + 1  if row_with_data else 1
-        
-        #append text into all collumn
         column = get_column_letter(column_no)
-        for i in range(1, last_row):
+        row_with_data = [cell for cell in sheet[column] if cell.value is not None]
+        next_row = int(row_with_data[-1].row) + 1  if row_with_data else 1
+
+        prev_column = get_column_letter(column_no - 1)
+        prev_row_with_data = [cell for cell in sheet[prev_column] if cell.value is not None]   
+        last_row = int(prev_row_with_data[-1].row) + 1
+        
+        for i in range(next_row, last_row):
             sheet[f"{column}{i}"] = dataset
-              
+        
     #Step 4.1, 4.3
     else:
         #find last row of that column
