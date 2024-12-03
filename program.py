@@ -89,6 +89,7 @@ def append_clipboard(filename):
         while True:   #FIXME non stop repeating??
             current_text = pyperclip.paste()
             if current_text != last_text and current_text.strip():
+                last_text = current_text
                 
                 if first_clip:
                     #skip first clipboard value
@@ -96,12 +97,12 @@ def append_clipboard(filename):
                     print(f"ignored first clipboard item: {current_text}")
                     continue
 
-                last_text = current_text
                 print(f"Detect new clipboard item: {current_text}.")
                 
                 # append new word to list
-                saved_words.append(current_text)
-                print(f"Saved new item: {current_text}.")            
+                word = current_text.strip()
+                saved_words.append(word)
+                print(f"Saved new item: {word}.")            
                 
             time.sleep(0.5)
 
