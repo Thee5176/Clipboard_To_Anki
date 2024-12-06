@@ -1,4 +1,0 @@
-- Object oriented refactor
-- whitespace between characters
-- Ignore furigana for Katakana vocab
-- Clean up special characters

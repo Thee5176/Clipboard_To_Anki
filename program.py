@@ -1,132 +1,121 @@
+class Deck:
+    def __init__(self):
+        self.font_list = list()
+        self.back_list = list()
+        
+    def add_card(self,font, back):
+        self.font_list.append(font)
+        self.back_list.append(back)
+
 import time
-
+import re
 import pyperclip
+            
+class ClipboardListener:
+    def __init__(self):
+        self.lang_engine = LanguageEngine()
+        
+        self.current_item = str()
+        self.last_item = str()
+        self.tags = str()
+        self.saving_item = str()
+    
+    #TODO Ignore first item
+    #TODO detect Japanese Character
+    
+    def detect_new_item(self):
+        '''check if current_item is not the same as last_item'''
+        return self.current_item != self.last_item      
+   
+    def clean_item(self):
+        '''remove whitespace and special characters'''
+        process_string = self.current_item
+        process_string = re.sub(r'[\'\'\[\-\+\.\^\:\,\]\s\?\!\#\*\&\(\)]', '', process_string)
+        self.saving_item = process_string
+    
+    def update_item(self):
+        self.last_item = self.current_item
+     
+
 import pykakasi
-
-from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
-
 from deep_translator import GoogleTranslator
 
-"""
-/ Step 1: parse clipboard > py_list
-/ Step 2: loop until KeyboardInterupt
-TODO Step 3: select sheet_name
-Step 4: iterate through py_list
-    / 4.1; parse py_list's item > column A
-    / 4.2; find furigana > column B
-    / 4.3; translate to english > append column B
-    / 4.4; tag > column C
-"""
+class LanguageEngine:
+    def __init__(self, lang='en'):
+        self.furigana_mode = pykakasi.kakasi()
+        self.translation_mode = GoogleTranslator(source='ja', target=lang)
+    
+    def find_furigana(self, kanji_word):
+        result = self.furigana_mode.convert(kanji_word)
+        if result[0]['kana'] != result[0]['orig'] and result[0]['hira'] != result[0]['orig']: #check if all character is not hiragana,katakana
+            furigana = ''.join(item['hira'] for item in result)
+            return furigana
+        else:
+            return False
+    
+    def find_translation(self, kanji_word):
+        translation = self.translation_mode.translate(text=kanji_word)
+        return translation
+    
+    def combine_result(self, word):
+        if self.find_furigana((word)):
+            result = f'{self.find_furigana(word)}　{self.find_translation(word)}'
+        else:
+            result = f'{self.find_translation(word)}'
+            
+        return result
+    
+import csv
 
-#Step 4
-def append_to_spreadsheet(filename, column_no, dataset):
+class FileHandler(Deck):
+    def __init__(self, deck):
+        super().__init__()
+        self.deck = deck
+    
+    def export_csv(self, filename='Anki.csv', deli='/', *tag):
+        #TODO Check consistency len(font) = len(back)??
+        deck_rows = []
+        for i in range(len(self.deck.font_list)):
+            deck_rows.append([self.deck.font_list[i],self.deck.back_list[i], tag])
+            
+        print(f'rows_created: {deck_rows}')
+        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+            deckwriter = csv.writer(csvfile, delimiter=deli)
+            
+            deckwriter.writerow(['FRONT','BACK','TAGS'])
+            
+            for card in deck_rows:
+                deckwriter.writerow(card)
+        
+        print(f'Deck exported to {filename}')
+
+
+def listen():
+    myAnkiDeck = Deck()
+    myListener = ClipboardListener()
+    myEngine = LanguageEngine()
+    myHandler = FileHandler(myAnkiDeck)
     try:
-        workbook = load_workbook(filename)
-        sheet = workbook.active
-    except FileNotFoundError:
-        from openpyxl import Workbook
-
-        workbook = Workbook()
-        sheet = workbook.active
-    
-        #Step 4.2
-    if type(dataset) == str:
-        #find last row of prev column
-        column = get_column_letter(column_no)
-        row_with_data = [cell for cell in sheet[column] if cell.value is not None]
-        next_row = int(row_with_data[-1].row) + 1  if row_with_data else 1
-
-        prev_column = get_column_letter(column_no - 1)
-        prev_row_with_data = [cell for cell in sheet[prev_column] if cell.value is not None]   
-        last_row = int(prev_row_with_data[-1].row) + 1
-
-        for i in range(next_row, last_row):
-            sheet[f"{column}{i}"] = dataset
-        
-    #Step 4.1, 4.3
-    else:
-        #find last row of that column
-        column = get_column_letter(column_no)
-        row_with_data = [cell for cell in sheet[column] if cell.value is not None]
-        next_row = int(row_with_data[-1].row) + 1  if row_with_data else 1
-        
-        #append data from list
-        for data in dataset:
-            sheet[f"{column}{next_row}"] = data
-            next_row = next_row + 1
-
-    workbook.save(filename)
-
-def find_furigana(dataset):
-    furigana_list = []
-    kks = pykakasi.kakasi()
-    
-    for data in dataset:
-        result = kks.convert(data)       #result in dictionary of generator object
-        furigana = "".join(item['hira'] for item in result) #convert generator obj > str
-        furigana_list.append(furigana)
-        
-    return furigana_list
-
-def find_translation(dataset):
-    translation_list = []
-    
-    translator = GoogleTranslator(source='ja', target='en')
-    translation_list = translator.translate_batch(dataset)
-    
-    return translation_list
-    
-
-def append_clipboard(filename):
-    saved_words = []
-    last_text = ""
-    print("Clipboard monitor started. Press Ctrl+C to stop.")
-
-    first_clip = True
-    
-    try:
-        while True:   #FIXME non stop repeating??
-            current_text = pyperclip.paste()
-            if current_text != last_text and current_text.strip():
-                last_text = current_text
+        while True:
+            myListener.current_item = pyperclip.paste()
+            
+            if myListener.detect_new_item():
+                print(f'Detected new clipboard item: {myListener.current_item}')
+                myListener.update_item()
+                myListener.clean_item()
                 
-                if first_clip:
-                    #skip first clipboard value
-                    first_clip = False
-                    print(f"ignored first clipboard item: {current_text}")
-                    continue
+                font = myListener.saving_item
+                
+                back = myEngine.combine_result(font)
+                
+                myAnkiDeck.add_card(font,back) #not appending
+                print(f'Saved new item: {myListener.saving_item}')
 
-                print(f"Detect new clipboard item: {current_text}.")
-                
-                # append new word to list
-                word = current_text.strip()
-                saved_words.append(word)
-                print(f"Saved new item: {word}.")            
-                
             time.sleep(0.5)
-
+        
     except KeyboardInterrupt:
-        print("\nClipboard monitor stopped.")
+        print(f'Stop listen to clipboard')
+        myHandler.export_csv(tag='test_vocab')
         
-        #Front
-        append_to_spreadsheet(filename, 1, saved_words)
-        print(f"Parsed {len(saved_words)} clipboard items to spreadsheet")
-        
-        #Back #TODO keep the coresponse row
-        furigana_list = find_furigana(saved_words)
-        translation_list = find_translation(saved_words)
-        
-        back_list = [f"{furigana}　{translation}" for furigana,translation in zip(furigana_list,translation_list)]
-        
-        append_to_spreadsheet(filename, 2, back_list)
-        print("Appended furigana")
-        
-        #Tags
-        tag = input('Add a tag/tags: *separate with comma*')
-        append_to_spreadsheet(filename, 3, tag)
-        print("Appended tag")
-        
-if __name__ == "__main__":
-    file = "Anki.xlsx"
-    append_clipboard(file)
+if __name__ == '__main__':
+    listen()
