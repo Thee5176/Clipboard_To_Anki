@@ -14,7 +14,6 @@ class ClipboardListener:
 
 
     def __init__(self):
-        self.lang_engine = LanguageEngine()
         self.current_item = str()
         self.last_item = str()
         self.tags = str()
@@ -31,7 +30,7 @@ class ClipboardListener:
         
         '''check if current_item is not the same as last_item'''
         return self.current_item != self.last_item      
-   
+
     def update_item(self):
         self.last_item = self.current_item
 
@@ -41,15 +40,11 @@ class ClipboardListener:
         process_string = re.sub(r'[\'\'\[\-\+\.\^\:\,\]\s\?\!\#\*\&\(\)]', '', process_string)
         
         '''check if all character is kanji'''
-        if self.isAllKanji(process_string):
+        kanji_pattern = re.compile(r'[\u3041-\u3096\u30A0-\u30FF\u4E00-\u9FAF]')
+        if len(kanji_pattern.findall(process_string)) == len(process_string):
             self.saving_item = process_string
         else:
             raise ValueError(f"text concist non-kanji character: {process_string}")
-
-    def isAllKanji(self, text):
-        '''Check for kanji'''
-        kanji_pattern = re.compile(r'[\u3041-\u3096\u30A0-\u30FF\u4E00-\u9FAF]')
-        return len(kanji_pattern.findall(text)) == len(text)
     
     def listen(self):
         try:
