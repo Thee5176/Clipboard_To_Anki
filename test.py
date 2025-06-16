@@ -1,6 +1,8 @@
 import unittest
 import pyperclip, pykakasi
-from program import Deck, ClipboardListener, LanguageEngine
+from component.clipboard_listener import ClipboardListener;
+from component.deck import Deck;
+from component.language_engine import LanguageEngine;
 from unittest.mock import patch
 
 '''Test Name Guide:
@@ -24,6 +26,7 @@ class TestClipboardListener(unittest.TestCase):
         self.listener.current_item = 'New Item' 
         self.listener.last_item = 'Old Item'
     
+    #TODO: test for adding skip initial item
     def test_detect_new_item_initial_case(self):
         self.listener.last_item = ''
         self.assertTrue(self.listener.detect_new_item())
