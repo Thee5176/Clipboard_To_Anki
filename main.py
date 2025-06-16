@@ -1,41 +1,9 @@
-from component.clipboard_listener import ClipboardListener;
-from component.deck import Deck;
-from component.file_handler import FileHandler;
-from component.language_engine import LanguageEngine;
+from component.clipboard_listener import ClipboardListener
 
-import time;
-import pyperclip;
+AnkiClipboardListener = ClipboardListener()
 
-def listen():
-    myDeck = Deck()
-    myListener = ClipboardListener()
-    myEngine = LanguageEngine()
-    myHandler = FileHandler(myDeck)
-
-    try:
-        while True:
-            myListener.current_item = pyperclip.paste()
-            
-            if myListener.detect_new_item():
-                print(f'Detected new clipboard item: {myListener.current_item}')
-                myListener.update_item()
-                myListener.clean_item()
-                
-                font = myListener.saving_item
-                
-                back = myEngine.combine_result(font)
-                
-                myDeck.add_card(font,back) #not appending
-                print(f'Saved new item: {myListener.saving_item}')
-
-            time.sleep(0.5)
-        
-    except KeyboardInterrupt:
-        print(f'Stop listen to clipboard')
-        myHandler.export_csv()
-        
 if __name__ == '__main__':
-    listen()
+    AnkiClipboardListener.listen()
     
     # deck = Deck()
     # fhand = FileHandler(deck)

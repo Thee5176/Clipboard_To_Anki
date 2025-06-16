@@ -26,7 +26,8 @@ class TestClipboardListener(unittest.TestCase):
         self.listener.current_item = 'New Item' 
         self.listener.last_item = 'Old Item'
     
-    #TODO: test for adding skip initial item
+    #TODO: test skip initial item
+    #TODO: test non-kanji character
     def test_detect_new_item_initial_case(self):
         self.listener.last_item = ''
         self.assertTrue(self.listener.detect_new_item())
