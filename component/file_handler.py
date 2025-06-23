@@ -27,16 +27,3 @@ class FileHandler():
                 deckwriter.writerow(card)
         
         print(f'Deck exported to {filename}')
-
-    def bypass_export_csv(self, deck_rows):
-        #In case program fail it continue from the last saved data    
-        print(f'rows_created: {deck_rows}')
-        with open('Anki.csv', 'w', newline='', encoding='utf-8') as csvfile:
-            deckwriter = csv.writer(csvfile, delimiter=';')
-            
-            deckwriter.writerow(['FRONT','BACK','TAGS'])
-            
-            for card in deck_rows:
-                deckwriter.writerow(card)
-        
-        print(f'Deck exported to Anki.csv')

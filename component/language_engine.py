@@ -24,4 +24,5 @@ class LanguageEngine:
         else:
             result = f'{self.find_translation(word)}'
             
+        print(result)
         return result
