@@ -1,4 +1,7 @@
 class Deck:
+    '''
+    Responsiblity: Data Object that store list of cards
+    '''
     def __init__(self):
         self.font_list = list()
         self.back_list = list()

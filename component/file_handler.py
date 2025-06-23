@@ -1,8 +1,12 @@
 import csv
 import os
 from pathlib import Path
+from pprint import pprint
 
 class FileHandler():
+    """
+    Responsibility: parse data from Deck to csv file
+    """
     def __init__(self, deck):
         self.deck = deck
     
@@ -12,7 +16,7 @@ class FileHandler():
         for i in range(len(self.deck.font_list)):
             deck_rows.append([self.deck.font_list[i],self.deck.back_list[i], tag])
             
-        print(f'rows_created: {deck_rows}')
+        pprint(deck_rows)
 
         '''if file already exist then append line'''
         isFileExist = Path(os.getcwd() + "/Anki.csv").exists()
@@ -26,4 +30,4 @@ class FileHandler():
             for card in deck_rows:
                 deckwriter.writerow(card)
         
-        print(f'Deck exported to {filename}')
+        print(f'Clipboard list exported to {filename}')

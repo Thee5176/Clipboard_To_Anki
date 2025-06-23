@@ -2,6 +2,9 @@ import pykakasi
 from deep_translator import GoogleTranslator
 
 class LanguageEngine:
+    """
+    Responsibility: find correspond furigana and translation
+    """
     def __init__(self, lang='en'):
         self.furigana_mode = pykakasi.kakasi()
         self.translation_mode = GoogleTranslator(source='ja', target=lang)
