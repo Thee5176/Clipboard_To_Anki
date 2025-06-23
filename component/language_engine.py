@@ -21,7 +21,7 @@ class LanguageEngine:
         translation = self.translation_mode.translate(text=kanji_word)
         return translation
     
-    def combine_result(self, word):
+    def parse_kanji(self, word):
         if self.find_furigana((word)):
             result = f'{self.find_furigana(word)} {self.find_translation(word)}'
         else:
